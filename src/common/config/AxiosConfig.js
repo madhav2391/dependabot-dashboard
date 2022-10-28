@@ -21,8 +21,8 @@ instance.interceptors.response.use(response => {
 
 instance.defaults.headers.common["Content-Type"] = "application/json";
 instance.defaults.headers.common["Accept"] = "application/vnd.github+json";
-
-const token = "Bearer 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";
+const gToken = localStorage.getItem("token")
+const token = "Bearer "+gToken;
 if (token) {
     instance.defaults.headers.common.Authorization = token;
 }
