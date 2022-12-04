@@ -1,7 +1,7 @@
 import axios from "axios"
 
 const instance = axios.create({
-    baseURL: "https://api.github.com"
+    baseURL: ""
 });
 
 instance.interceptors.request.use(request => {
@@ -21,7 +21,7 @@ instance.interceptors.response.use(response => {
 
 instance.defaults.headers.common["Content-Type"] = "application/json";
 instance.defaults.headers.common["Accept"] = "application/vnd.github+json";
-const gToken = localStorage.getItem("token")
+const gToken = process.env.REACT_APP_TOKEN//localStorage.getItem("token")
 const token = "Bearer "+gToken;
 if (token) {
     instance.defaults.headers.common.Authorization = token;

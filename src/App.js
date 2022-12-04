@@ -9,48 +9,93 @@ import axios from "./common/config/AxiosConfig";
 import { Stack, TextField, ButtonGroup } from '@mui/material'
 import { Box, Grid, Paper } from '@mui/material'
 
+function parse_link_header(header) {
+    if (header.length === 0) {
+        throw new Error("input must not be of zero length");
+    }
+
+    // Split parts by comma
+    var parts = header.split(',');
+    var links = {};
+    // Parse each part into a named link
+    for(var i=0; i<parts.length; i++) {
+        var section = parts[i].split(';');
+        if (section.length !== 2) {
+            throw new Error("section could not be split on ';'");
+        }
+        var url = section[0].replace(/<(.*)>/, '$1').trim();
+        var name = section[1].replace(/rel="(.*)"/, '$1').trim();
+        links[name] = url;
+    }
+    return links;
+}
+
+
 function App() {
     const [apiData, setApiData] = useState([]);
     const [refinedData,setRefinedData] = useState([]);
-     const fetchAlerts = () => {
+    const [linkHeader,setLinkHeader] = useState({});
+    const oorg = process.env.REACT_APP_ORGANISATION_NAME//localStorage.getItem("org");
+    const [apiLink,setApiLink]= useState("https://api.github.com/orgs/"+oorg+"/dependabot/alerts?first=100")
+    const fetchAlerts = () => {
         console.log("heli");
-            console.log("ji");
-            const oorg = localStorage.getItem("org");
-            axios
-                .get("/orgs/"+oorg+"/dependabot/alerts") 
-                .then((res) => {
-                    // if (!res.data) { throw new Error("No alerts found"); }
-                    console.log("-----then------", res);
-                    setApiData(res.data)
-                })
-                .catch((err) => {
-                    console.log("-----this is catch------", err);
-                })
-
-        
+        console.log("ji");
+        axios
+            .get(apiLink) 
+            .then((res) => {
+                // if (!res.data) { throw new Error("No alerts found"); }
+                console.log("-----then------", res);
+                console.log("**********",res.headers.link);
+                setLinkHeader(parse_link_header(res.headers.get('Link')))
+                setApiData(res.data)
+            })
+            .catch((err) => {
+                console.log("-----this is catch------", err);
+            })
     }
 
-
-    const [value, setValue] = useState('');
-    const [org,setOrg] = useState('');
-    const handleChange = (event) => {
-      setValue(event.target.value)
+function getRefinedData(apiData){
+    // let data=[];
+    // console.log("adfasdfasdf234234",apiData);
+    for (const element of apiData) {
+        refinedData.push({summary:element.security_advisory.summary,state:element.state,severity:element.security_advisory.severity,created_at:element.created_at,repository:element.repository.name,html_url:element.html_url,ecosystem:element.dependency.package.ecosystem,score:(element.security_advisory.cvss.score)})
+        // console.log(element.repository.name)
     }
-    const handleOrgChange = (event) => {
-        setOrg(event.target.value)
-      }
+    // return data;
+}
+    useEffect(()=>{
+        console.log("hiiiii",linkHeader);
+        // if(linkHeader.next){
+            setApiLink(linkHeader.next)
+        // }
+    },[linkHeader])
+
+
+    // const [value, setValue] = useState('');
+    // const [org,setOrg] = useState('');
+    // const handleChange = (event) => {
+    //   setValue(event.target.value)
+    // }
+    // const handleOrgChange = (event) => {
+    //     setOrg(event.target.value)
+    //   }
     useEffect(()=>{
         fetchAlerts();
         console.log("asfd");
     },[])
     useEffect(()=>{
-        let data=[];
-        console.log("adfasdfasdf234234",apiData);
-        for (const element of apiData) {
-            data.push({summary:element.security_advisory.summary,state:element.state,severity:element.security_advisory.severity,created_at:element.created_at,repository:element.repository.name,html_url:element.html_url,ecosystem:element.dependency.package.ecosystem})
-        }
-        setRefinedData(data);
+        fetchAlerts();
+        console.log("next page");
+    },[apiLink])
+    useEffect(()=>{
+        getRefinedData(apiData);
+        // const data = newd;
+        // console.log("nnnnnnnnnnnnnnnnnn",newd);
+        // setRefinedData(data);
     },[apiData])
+
+
+
     const columns = [
         { label: "summary",name:" summary", options: { filterOptions: { fullWidth: true } ,
         customBodyRenderLite: (dataIndex) => {
@@ -90,6 +135,13 @@ function App() {
           return val;
           } } 
         },
+        {name:"cvss Score",label:"cvss Score",        
+        options: { filterOptions: { fullWidth: true } ,
+        customBodyRenderLite: (dataIndex) => {
+          const val = refinedData[dataIndex].score;
+          return val;
+          } } 
+        },
         {name: "Open in gitHub",
         options: { filterOptions: {  fullWidth: true } ,
         customBodyRenderLite: (dataIndex) => {
@@ -106,6 +158,7 @@ function App() {
 
         }
     ];
+
     const options = {
         search: true,
         download: false,
@@ -121,7 +174,7 @@ function App() {
   return (
     <div className="App">
 
-    <Paper sx={{ padding: '16px' }} elevation={2}>
+    {/* <Paper sx={{ padding: '16px' }} elevation={2}>
  
       <Grid rowSpacing={2} columnSpacing={1} container my={4}>
         <Grid item xs={6}>
@@ -165,7 +218,7 @@ function App() {
 
         </Grid>
       </Grid>
-    </Paper>
+    </Paper> */}
 
         <MUIDataTable
         title={"Dependabot Alerts"}
