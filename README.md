@@ -2,6 +2,14 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app), using the [Redux](https://redux.js.org/) and [Redux Toolkit](https://redux-toolkit.js.org/) template.
 
+## Environment variables
+
+to run the dockerise application create a .env file in the folder you want to run and it needs to have REACT_APP_ORGANISATION_NAME,REACT_APP_TOKEN variable values. Do remeber no spaces in .env file
+
+For dev server
+docker build: docker build . -t dependabot 
+docker run: docker run --env-file ./.env  -p 3000:3000 --name apps dependabot
+
 ## Available Scripts
 
 In the project directory, you can run:
@@ -39,8 +47,4 @@ Instead, it will copy all the configuration files and the transitive dependencie
 
 You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
-## Learn More
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
